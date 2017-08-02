@@ -101,12 +101,12 @@ class NTuple2 : public NTuple {
             
             for (int t = 0; t < 2; t++) {
                 for (int i = 0; i < len4; i++) {
-                    wages4[t][i] = 0.0;
+                    wages4[t][i] = 100.0;
                 }
             }
             for (int t = 0; t < 2; t++) {
                 for (int i = 0; i < len6; i++) {
-                    wages6[t][i] = 0.0;
+                    wages6[t][i] = 100.0;
                 }
             }
         
@@ -114,7 +114,7 @@ class NTuple2 : public NTuple {
         
         double get_value(Board2048 const& state) const {
             double value = 0.0;
-            auto symmetries = get_symmetries(state);
+            std::vector<Board2048> symmetries = get_symmetries(state);
 
             for (int t = 0; t < 2; ++t) {
                 for (auto const& s : symmetries) {
@@ -123,7 +123,7 @@ class NTuple2 : public NTuple {
                 }
             }
             for (int t = 0; t < 2; ++t) {
-                for (auto const& s : symmetries) {
+                for (Board2048 const& s : symmetries) {
                     int index = get_index(s, tuples[2 + t]);
                     value += wages6[t][index];
                 }
@@ -133,16 +133,19 @@ class NTuple2 : public NTuple {
         }
 
         void learn(Board2048 const& state, double delta, double alpha) {
-            auto symmetries = get_symmetries(state);
+            std::vector<Board2048> symmetries = get_symmetries(state);
+    
+            // if (delta < 0)
+            // std::cout << "learning : " << delta << "\n";
 
             for (int t = 0; t < 2; ++t) {
-                for (auto const& s : symmetries) {
+                for (Board2048 const& s : symmetries) {
                     int index = get_index(s, tuples[t]);
                     wages4[t][index] += delta * alpha;
                 }
             }
             for (int t = 0; t < 2; ++t) {
-                for (auto const& s : symmetries) {
+                for (Board2048 const& s : symmetries) {
                     int index = get_index(s, tuples[2 + t]);
                     wages6[t][index] += delta * alpha;
                 }

@@ -26,6 +26,8 @@ class Board2048 {
         Board2048();
         Board2048(Board2048 const& other);
 
+        Board2048& operator=(Board2048 const& other);
+
         int& operator()(int x, int y) {
             return state[x][y];
         }
@@ -68,6 +70,16 @@ class Board2048 {
 
         int get_reward() {
             return reward;
+        }
+
+        void print() const {
+            for (int x = 0; x < 4; ++x) {
+                for (int y = 0; y < 4; ++y) {
+                    std::cout << state[x][y] << " ";
+                }
+                std::cout << "\n";
+            }
+            std::cout << "\n";
         }
 
         ~Board2048();

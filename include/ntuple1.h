@@ -22,11 +22,11 @@ class NTuple1 : public NTuple {
 	
 	long double wages[17][len4];
 	
-	int getIndex(int** board, vecpii const& tuple) const {
+	int get_index(Board2048 const& state, vecpii const& tuple) const {
 		int res = 0;
 		int pow = 1;
 		for (auto it = tuple.begin(); it < tuple.end(); ++it) {
-			res += board[(*it).first][(*it).second] * pow;
+			res += state(*it) * pow;
 			pow *= numStates;
 		}
 		return res;
@@ -81,20 +81,20 @@ class NTuple1 : public NTuple {
 
 	}
 	
-	long double getValue(int** board) const {
+	double get_value(Board2048 const& state) const {
 		double value = 0.;
 
 		for (int t = 0; t < 17; ++t) {
-			int index = getIndex(board, tuples[t]);
+			int index = get_index(state, tuples[t]);
 			value += wages[t][index];
 		}
 		
 		return value;
 	}
 
-	void learn(int** board, long double delta, long double alpha) {
+	void learn(Board2048 const& state, double delta, double alpha) {
 		for (int t = 0; t < 17; ++t) {
-			int index = getIndex(board, tuples[t]);
+			int index = get_index(state, tuples[t]);
 			wages[t][index] += alpha * delta;
 		}
 	}

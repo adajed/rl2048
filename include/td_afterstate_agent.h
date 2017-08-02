@@ -2,14 +2,15 @@
 #define TD_AFTERSTATE_AGENT_H
 
 #include "state_value_agent.h"
+#include "ntuple2.h"
 
 class TDAfterstateAgent : public StateValueAgent {
     private :
         int choose_greedy_action(Board2048 const& state) const;
 
     public :
-        TDAfterstateAgent(NTuple *ntuple, double lr = 0.001) :
-            StateValueAgent(ntuple, lr) {
+        TDAfterstateAgent(double lr = 0.001) :
+            StateValueAgent(lr) {
         }
 
         int choose_action(Board2048 const& state, double eps=0.001) const;

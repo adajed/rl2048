@@ -16,6 +16,18 @@ Board2048::Board2048(Board2048 const& other) {
     reward = other.reward;
 }
 
+Board2048& Board2048::operator=(Board2048 const& other) {
+    for (int x = 0; x < 4; ++x) {
+        for (int y = 0; y < 4; ++y) {
+            state[x][y] = other.state[x][y];
+        }
+    }
+
+    reward = other.reward;
+
+    return *this;
+}
+
 int** Board2048::new_2D_array() const {
 	int** arr = new int*[4];
 	for (int i = 0; i < 4; i++) {

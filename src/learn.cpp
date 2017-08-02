@@ -3,6 +3,7 @@
 #include "ntuple2.h"
 #include "state_value_agent.h"
 #include "td_afterstate_agent.h"
+#include "dummy_agent.h"
 
 #include <iostream>
 #include <ctime>
@@ -14,13 +15,19 @@
 #include <vector>
 #include <unistd.h>
 
-int playSingleEpisode(StateValueAgent & agent, double eps) {
+TDAfterstateAgent agent(0.01);
+
+int playSingleEpisode(double eps) {
 	int score = 0;
     Board2048 state;
+    state.add_random_tile();
+    state.add_random_tile();
 
 	while (!state.is_game_over()) {
+        //state.print();
+
         int action = agent.choose_action(state, eps);
-		
+
         Board2048 after_state(state);
         after_state.make_move(action);
 
@@ -34,43 +41,12 @@ int playSingleEpisode(StateValueAgent & agent, double eps) {
 		score += reward;
 		state = next_state;
 	}
+    //state.print();
 
 	return score;
 }
 
-void learn(int printAfter, int saveAfter, char* fileName, char* dir, double alpha, int type) {
-	NTuple* p_ntuple = new NTuple2;
-    /*
-	if (type == 1) {
-		if (fileName == nullptr) {
-			p_ntuple = new NTuple2;
-		} else {
-			try {
-				p_ntuple = new NTuple2(fileName);
-			} catch (int n) {
-				std::cerr << "file \"" << fileName << "\" not found\n";
-				return;
-			}
-		}
-	} else if (type == 2) {
-		if (fileName == nullptr) {
-			p_ntuple = new NTuple2;
-		} else {
-			try {
-				p_ntuple = new NTuple2(fileName);
-			} catch (int n) {
-				std::cerr << "file \"" << fileName << "\" not found\n";
-				return;
-			}
-		}
-	} else {
-		std::cerr << "wrong ntuple type, should be 1 or 2\n";
-		return;
-	}
-    */
-
-    TDAfterstateAgent agent(p_ntuple);
-
+void learn(int printAfter, double alpha) {
 	int gameNum = 1;
 	while (true) {
 		double avgScore = 0;
@@ -78,7 +54,8 @@ void learn(int printAfter, int saveAfter, char* fileName, char* dir, double alph
 		int worstScore = 999999;
 
 		for (int i = 0; i < printAfter; i++) {
-			int score = playSingleEpisode(agent, 0.001);
+            // std::cout << gameNum << std::endl;
+			int score = playSingleEpisode(0.001);
 
 			if (score < worstScore) { worstScore = score; }
 			if (score > bestScore) { bestScore = score; }
@@ -95,30 +72,16 @@ void learn(int printAfter, int saveAfter, char* fileName, char* dir, double alph
 		std::cout << "worst score = " << worstScore << "\n";
 		std::cout << "\n";
 	}
-
-	delete p_ntuple;
 }
 
-/*
-* arguments :
-* 1 - po ilu grach wypisywac statystyki
-* 2 - po ilu grach zapisywać
-* 3 - folder do zapisywania
-* 4 - alpha
-* 5 - typ tupla
-* 6 - poczatkowy tuple, jesli nie podany zaczyna od zera
-*/
 int main(int argc, char** argv) {
-	srand(time(NULL));
+    srand(time(NULL));
 
-
-	if (argc == 6) {
-		learn(atoi(argv[1]), atoi(argv[2]), nullptr, argv[3], atof(argv[4]), atoi(argv[5]));
-	} else if (argc == 7) {
-		learn(atoi(argv[1]), atoi(argv[2]), argv[6], argv[3], atof(argv[4]), atoi(argv[5]));
-	} else {
-		std::cout << "wrong number of args\n";
-	}
-
+    if (argc != 3) {
+        printf("Usage %s print_every learning_rate\n", argv[0]);
+        return 1;
+    }
+    
+    learn(atoi(argv[1]), atof(argv[2]));
 	return 0;
 }

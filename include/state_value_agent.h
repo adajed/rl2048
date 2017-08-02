@@ -2,16 +2,17 @@
 #define STATE_VALUE_AGENT_H
 
 #include "ntuple.h"
+#include "ntuple2.h"
 #include "board.h"
 
 class StateValueAgent {
     protected :
-        NTuple *ntuple;
+        NTuple2 ntuple;
         double lr;
 
     public :
-        StateValueAgent(NTuple *ntuple, double lr = 0.001) {
-            ntuple = ntuple;
+        StateValueAgent(double lr = 0.001) :
+            ntuple() {
             lr = lr;
         }
 
