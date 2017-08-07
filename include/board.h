@@ -44,6 +44,21 @@ class Board2048 {
             return state[p.first][p.second];
         }
 
+        bool operator==(Board2048 const& other) const {
+            for (int x = 0; x < 4; ++x) {
+                for (int y = 0; y < 4; ++y) {
+                    if (state[x][y] != other.state[x][y]) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        
+        bool operator!=(Board2048 const& other) const {
+            return !operator==(other);
+        }
 
         /*
          * makes move

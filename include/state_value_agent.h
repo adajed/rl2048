@@ -7,13 +7,12 @@
 
 class StateValueAgent {
     protected :
-        NTuple2 ntuple;
+        NTuple2 *ntuple;
         double lr;
 
     public :
-        StateValueAgent(double lr = 0.001) :
-            ntuple() {
-            lr = lr;
+        StateValueAgent(NTuple2 *ntuple, double lr) :
+            ntuple(ntuple), lr(lr) {
         }
 
         virtual int choose_action(Board2048 const& state, double eps=0.001) const = 0;

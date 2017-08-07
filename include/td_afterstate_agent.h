@@ -9,8 +9,8 @@ class TDAfterstateAgent : public StateValueAgent {
         int choose_greedy_action(Board2048 const& state) const;
 
     public :
-        TDAfterstateAgent(double lr = 0.001) :
-            StateValueAgent(lr) {
+        TDAfterstateAgent(NTuple2 *ntuple, double lr) :
+            StateValueAgent(ntuple, lr) {
         }
 
         int choose_action(Board2048 const& state, double eps=0.001) const;

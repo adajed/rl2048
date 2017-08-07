@@ -59,14 +59,15 @@ class NTuple2 : public NTuple {
 
             for (int x = 0; x < 4; ++x) {
                 for (int y = 0; y < 4; ++y) {
-                    symmetries[0](x, y) = state(x, y);
-                    symmetries[1](3 - x, y) = state(x, y);
-                    symmetries[2](x, 3 - y) = state(x, y);
-                    symmetries[3](3 - x, 3 - y) = state(x, y);
-                    symmetries[4](y, x) = state(x, y);
-                    symmetries[5](y, 3 - x) = state(x, y);
-                    symmetries[6](3 - y, x) = state(x, y);
-                    symmetries[7](3 - y, 3 - x) = state(x, y);
+                    int val = state(x, y);
+                    symmetries[0](x, y) = val;
+                    symmetries[1](3 - x, y) = val;
+                    symmetries[2](x, 3 - y) = val;
+                    symmetries[3](3 - x, 3 - y) = val;
+                    symmetries[4](y, x) = val;
+                    symmetries[5](y, 3 - x) = val;
+                    symmetries[6](3 - y, x) = val;
+                    symmetries[7](3 - y, 3 - x) = val;
                 }
             }
 
@@ -101,12 +102,12 @@ class NTuple2 : public NTuple {
             
             for (int t = 0; t < 2; t++) {
                 for (int i = 0; i < len4; i++) {
-                    wages4[t][i] = 100.0;
+                    wages4[t][i] = 0.0;
                 }
             }
             for (int t = 0; t < 2; t++) {
                 for (int i = 0; i < len6; i++) {
-                    wages6[t][i] = 100.0;
+                    wages6[t][i] = 0.0;
                 }
             }
         
@@ -128,26 +129,24 @@ class NTuple2 : public NTuple {
                     value += wages6[t][index];
                 }
             }
-            
             return value;
         }
 
-        void learn(Board2048 const& state, double delta, double alpha) {
+        void learn(Board2048 const& state, double new_value, double alpha) {
             std::vector<Board2048> symmetries = get_symmetries(state);
     
-            // if (delta < 0)
-            // std::cout << "learning : " << delta << "\n";
+            double delta = new_value - get_value(state);
 
             for (int t = 0; t < 2; ++t) {
                 for (Board2048 const& s : symmetries) {
                     int index = get_index(s, tuples[t]);
-                    wages4[t][index] += delta * alpha;
+                    wages4[t][index] += (delta * alpha);
                 }
             }
             for (int t = 0; t < 2; ++t) {
                 for (Board2048 const& s : symmetries) {
                     int index = get_index(s, tuples[2 + t]);
-                    wages6[t][index] += delta * alpha;
+                    wages6[t][index] += (delta * alpha);
                 }
             }
         }

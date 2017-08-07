@@ -9,7 +9,7 @@
 class DummyAgent : public StateValueAgent {
     public :
         DummyAgent() :
-            StateValueAgent(0.) {
+            StateValueAgent(NULL, 0.) {
         }
 
         int choose_action(Board2048 const& state, double eps=0.001) const {

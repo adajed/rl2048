@@ -15,9 +15,9 @@
 #include <vector>
 #include <unistd.h>
 
-TDAfterstateAgent agent(0.01);
+#include <cassert>
 
-int playSingleEpisode(double eps) {
+int playSingleEpisode(TDAfterstateAgent & agent, double eps) {
 	int score = 0;
     Board2048 state;
     state.add_random_tile();
@@ -31,9 +31,13 @@ int playSingleEpisode(double eps) {
         Board2048 after_state(state);
         after_state.make_move(action);
 
+        assert(state != after_state);
+
         Board2048 next_state(after_state);
         next_state.add_random_tile();
 		
+        assert(next_state != after_state);
+        
         int reward = after_state.get_reward();
 		
         agent.learn(state, reward, after_state, next_state);
@@ -47,6 +51,9 @@ int playSingleEpisode(double eps) {
 }
 
 void learn(int printAfter, double alpha) {
+    NTuple2 *ntuple = new NTuple2;
+    TDAfterstateAgent agent(ntuple, 0.01);
+
 	int gameNum = 1;
 	while (true) {
 		double avgScore = 0;
@@ -55,7 +62,7 @@ void learn(int printAfter, double alpha) {
 
 		for (int i = 0; i < printAfter; i++) {
             // std::cout << gameNum << std::endl;
-			int score = playSingleEpisode(0.001);
+			int score = playSingleEpisode(agent, 0.001);
 
 			if (score < worstScore) { worstScore = score; }
 			if (score > bestScore) { bestScore = score; }

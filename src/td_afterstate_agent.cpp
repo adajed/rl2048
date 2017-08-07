@@ -1,5 +1,7 @@
 #include "td_afterstate_agent.h"
 
+#include "cassert"
+
 int TDAfterstateAgent::choose_greedy_action(Board2048 const& state) const {
 	int best_action = 0;
 	double value, best_value = 0.;
@@ -38,7 +40,7 @@ double TDAfterstateAgent::state_value(Board2048 const& state, int action) const 
     temp_state.make_move(action);
 	int reward = temp_state.get_reward();
 
-    double ret = reward + ntuple.get_value(temp_state);
+    double ret = (double)reward + ntuple->get_value(temp_state);
     return ret;
 }
 
@@ -52,13 +54,12 @@ void TDAfterstateAgent::learn(Board2048 const& state, double reward,
         temp_state.make_move(next_action);
         int next_reward = temp_state.get_reward();
 
-        double temp_state_value = ntuple.get_value(temp_state);
-        double after_state_value = ntuple.get_value(after_state);
-        
-        ntuple.learn(after_state, next_reward + temp_state_value - after_state_value, lr);
+        assert(next_state != temp_state);
+
+        double temp_state_value = ntuple->get_value(temp_state);
+        ntuple->learn(after_state, (double)next_reward + temp_state_value, lr);
     } else {
-        double after_state_value = ntuple.get_value(after_state);
-        ntuple.learn(after_state, -after_state_value, lr);
+        ntuple->learn(after_state, 0., lr);
     }
 }
 
