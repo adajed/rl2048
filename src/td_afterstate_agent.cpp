@@ -9,7 +9,10 @@ int TDAfterstateAgent::choose_greedy_action(Board2048 const& state) const {
 
 	for (int m = 0; m < 4; m++) {
 		if (state.is_move_possible(m)) {
-			value = state_value(state, m);
+            Board2048 temp_state(state);
+            temp_state.make_move(m);
+
+			value = state_value(temp_state);
 			if (value > best_value || !p) {
 				best_action = m;
 				best_value = value;
@@ -21,7 +24,7 @@ int TDAfterstateAgent::choose_greedy_action(Board2048 const& state) const {
 	return best_action;
 }
 
-int TDAfterstateAgent::choose_action(Board2048 const& state, double eps) const {
+int TDAfterstateAgent::choose_action(Board2048 const& state) const {
 	int action;
 	if ((double(rand()) / RAND_MAX) < eps) {
 		do {
@@ -34,19 +37,16 @@ int TDAfterstateAgent::choose_action(Board2048 const& state, double eps) const {
 	return action;
 }
 
-double TDAfterstateAgent::state_value(Board2048 const& state, int action) const {
-	Board2048 temp_state(state);
-    
-    temp_state.make_move(action);
-	int reward = temp_state.get_reward();
+double TDAfterstateAgent::state_value(Board2048 const& state) const {
+	int reward = state.get_reward();
 
-    double ret = (double)reward + ntuple->get_value(temp_state);
+    double ret = (double)reward + model->get_value(state);
     return ret;
 }
 
 
-void TDAfterstateAgent::learn(Board2048 const& state, double reward, 
-        Board2048 const& after_state, Board2048 const& next_state) {
+void TDAfterstateAgent::learn(Board2048 const& state, Board2048 const& after_state, 
+        Board2048 const& next_state, int action, double reward) {
     if (!next_state.is_game_over()) {
         int next_action = choose_greedy_action(next_state);
         
@@ -56,10 +56,10 @@ void TDAfterstateAgent::learn(Board2048 const& state, double reward,
 
         assert(next_state != temp_state);
 
-        double temp_state_value = ntuple->get_value(temp_state);
-        ntuple->learn(after_state, (double)next_reward + temp_state_value, lr);
+        double temp_state_value = model->get_value(temp_state);
+        model->learn(after_state, (double)next_reward + temp_state_value);
     } else {
-        ntuple->learn(after_state, 0., lr);
+        model->learn(after_state, 0.);
     }
 }
 

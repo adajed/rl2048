@@ -1,26 +1,36 @@
 #ifndef STATE_VALUE_AGENT_H
 #define STATE_VALUE_AGENT_H
 
-#include "ntuple.h"
-#include "ntuple2.h"
+#include "model.h"
 #include "board.h"
 
+/*
+ * Base class for state value agents
+ */
 class StateValueAgent {
     protected :
-        NTuple2 *ntuple;
-        double lr;
+        Model *model;
 
     public :
-        StateValueAgent(NTuple2 *ntuple, double lr) :
-            ntuple(ntuple), lr(lr) {
+        StateValueAgent(Model *model) :
+            model(model) {
         }
 
-        virtual int choose_action(Board2048 const& state, double eps=0.001) const = 0;
+        /*
+         * chooses action to take in given state
+         */
+        virtual int choose_action(Board2048 const& state) const = 0;
 
-        virtual double state_value(Board2048 const& state, int action) const = 0;
+        /*
+         * calculates value for given state
+         */
+        virtual double state_value(Board2048 const& state) const = 0;
 
-        virtual void learn(Board2048 const& state, double reward, 
-                Board2048 const& after_state, Board2048 const& next_state) = 0;
+        /*
+         * updates model based on transition
+         */
+        virtual void learn(Board2048 const& state, Board2048 const& after_state, 
+                Board2048 const& next_state, int action, double reward) = 0;
 };
 
 #endif // STATE_VALUE_AGENT_H

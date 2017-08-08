@@ -83,7 +83,7 @@ class Board2048 {
 
         bool is_game_over() const;
 
-        int get_reward() {
+        int get_reward() const {
             return reward;
         }
 

@@ -2,28 +2,37 @@
 #define NTUPLE2_H
 
 #include <fstream>
-#include <iostream>
-
 #include <vector>
 
-#include "ntuple.h"
-#include "board.h"
+#include "model.h"
 
 typedef std::pair<int, int> pairii;
 typedef std::vector<pairii> vecpii;
 
-class NTuple2 : public NTuple {
+/*
+ * Implementation of N-tuple network architecture from second experiment
+ *
+ * Consist of 2 streight and 2 rectangular (2 by 3) tuples.
+ * Also each tuple is aplied to 8 different rotations and reflections of a board.
+ * Assumes each tile has 15 possible states (maximal tile can be 2^14 = 16 384).
+ *
+ * Has 2 * 15^4 + 2 * 15^6 = 22 882 500 weights.
+ */
+class NTuple2 : public Model {
 	private:
         const static int numStates = 15;
-
         const static int len4 = 50625;
         const static int len6 = 11390625;
 
         std::vector<vecpii> tuples;
+        long double weights4[2][len4];
+        long double weights6[2][len6];
         
-        long double wages4[2][len4];
-        long double wages6[2][len6];
-        
+        double lr;
+
+        /*
+         * calculates index of state in given tuple
+         */
         int get_index(Board2048 const& state, vecpii const& tuple) const {
             int res = 0;
             int pow = 1;
@@ -34,7 +43,10 @@ class NTuple2 : public NTuple {
             return res;
         }
 
-        void initTuples() {
+        /* 
+         * creates all tuples
+         */
+        void init_tuples() {
             for (int i = 0; i < 2; ++i) {
                 tuples.push_back(vecpii());
                 for (int x = 0; x < 4; ++x) {
@@ -51,6 +63,9 @@ class NTuple2 : public NTuple {
             }
         }
 
+        /*
+         * calculates all symmetries for given state
+         */
         std::vector<Board2048> get_symmetries(Board2048 const& state) const {
             std::vector<Board2048> symmetries;
             for (int i = 0; i < 8; ++i) {
@@ -75,44 +90,53 @@ class NTuple2 : public NTuple {
         }
 
 	public:
-        NTuple2(char *fileName) {
-            initTuples();
+        /*
+         * constructs new NTuple2 
+         * all weights are initialized to 0
+         */
+        NTuple2(double lr) : tuples(), lr(lr) {
+            init_tuples();
+            
+            for (int t = 0; t < 2; t++) {
+                for (int i = 0; i < len4; i++) {
+                    weights4[t][i] = 0.0;
+                }
+            }
+            for (int t = 0; t < 2; t++) {
+                for (int i = 0; i < len6; i++) {
+                    weights6[t][i] = 0.0;
+                }
+            }
+        
+        }
+ 
+        /*
+         * read NTuple2 from file
+         *
+         * filepath - binary file with NTuple2 weights
+         */
+        NTuple2(std::string const& filepath, double lr) : lr(lr) {
+            init_tuples();
 
-            std::ifstream file(fileName);
+            std::ifstream file(filepath.c_str(), std::ios::in | std::ios::binary);
             if (!file.is_open()) {
                 throw -1;
             }
 
             for (int t = 0; t < 2; t++) {
                 for (int i = 0; i < len4; i++) {
-                    file >> wages4[t][i];
+                    file.read((char *)&weights4[t][i], sizeof(weights4[t][i]));
                 }
             }
             for (int t = 0; t < 2; t++) {
                 for (int i = 0; i < len6; i++) {
-                    file >> wages6[t][i];
+                    file.read((char *)&weights6[t][i], sizeof(weights6[t][i]));
                 }
             }
         
             file.close();
         }
-
-        NTuple2() : tuples() {
-            initTuples();
-            
-            for (int t = 0; t < 2; t++) {
-                for (int i = 0; i < len4; i++) {
-                    wages4[t][i] = 0.0;
-                }
-            }
-            for (int t = 0; t < 2; t++) {
-                for (int i = 0; i < len6; i++) {
-                    wages6[t][i] = 0.0;
-                }
-            }
-        
-        }
-        
+       
         double get_value(Board2048 const& state) const {
             double value = 0.0;
             std::vector<Board2048> symmetries = get_symmetries(state);
@@ -120,19 +144,19 @@ class NTuple2 : public NTuple {
             for (int t = 0; t < 2; ++t) {
                 for (auto const& s : symmetries) {
                     int index = get_index(s, tuples[t]);
-                    value += wages4[t][index];
+                    value += weights4[t][index];
                 }
             }
             for (int t = 0; t < 2; ++t) {
                 for (Board2048 const& s : symmetries) {
                     int index = get_index(s, tuples[2 + t]);
-                    value += wages6[t][index];
+                    value += weights6[t][index];
                 }
             }
             return value;
         }
 
-        void learn(Board2048 const& state, double new_value, double alpha) {
+        void learn(Board2048 const& state, double new_value) {
             std::vector<Board2048> symmetries = get_symmetries(state);
     
             double delta = new_value - get_value(state);
@@ -140,34 +164,38 @@ class NTuple2 : public NTuple {
             for (int t = 0; t < 2; ++t) {
                 for (Board2048 const& s : symmetries) {
                     int index = get_index(s, tuples[t]);
-                    wages4[t][index] += (delta * alpha);
+                    weights4[t][index] += delta * lr;
                 }
             }
             for (int t = 0; t < 2; ++t) {
                 for (Board2048 const& s : symmetries) {
                     int index = get_index(s, tuples[2 + t]);
-                    wages6[t][index] += (delta * alpha);
+                    weights6[t][index] += delta * lr;
                 }
             }
         }
 
-        void save(const char* fileName) {
-            std::ofstream file(fileName);
+        /*
+         * Saves NTuple2 weights to binary file
+         *
+         * filepath - filepath, where NTuple2 will be saved
+         */
+        void save(std::string const& filepath) {
+            std::ofstream file(filepath.c_str(), std::ios::binary | std::ios::out);
             if (!file.is_open()) {
                 // TODO: throw exception
+                throw -1;
             }
 
             for (int t = 0; t < 2; t++) {
                 for (int i = 0; i < len4; i++) {
-                    file << wages4[t][i] << " ";
+                    file.write((char *) &weights4[t][i], sizeof(weights4[t][i]));
                 }
-                file << "\n";
             }
             for (int t = 0; t < 2; t++) {
                 for (int i = 0; i < len6; i++) {
-                    file << wages6[t][i] << " ";
+                    file.write((char *) &weights6[t][i], sizeof(weights6[t][i]));
                 }
-                file << "\n";
             }
         
             file.close();
