@@ -3,3 +3,23 @@ Reinforcement Learning agent for 2048 game
 
 C++ implementation of Temporal Difference Learning for the 2048 game.<br />
 Based on paper: http://www.cs.put.poznan.pl/mszubert/pub/szubert2014cig.pdf<br />
+
+## Usage
+To compile program cd to project directory and write:
+```
+mkdir build; cd buid
+cmake ..
+make
+```
+
+Then to run program:
+./learn <print_every> <learning_rate> <save_every>
+print_every - after this many games print statistics
+learning_rate - learning rate for algorithm
+save_every - after this many games save model
+
+Example usage:
+```
+./learn 100 0.01 1000
+```
+
