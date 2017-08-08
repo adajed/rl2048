@@ -13,10 +13,10 @@ make
 ```
 
 Then to run program:
-./learn <print_every> <learning_rate> <save_every>
-print_every - after this many games print statistics
-learning_rate - learning rate for algorithm
-save_every - after this many games save model
+./learn <print_every> <learning_rate> <save_every><br />
+print_every - after this many games print statistics<br />
+learning_rate - learning rate for algorithm<br />
+save_every - after this many games save model<br />
 
 Example usage:
 ```
